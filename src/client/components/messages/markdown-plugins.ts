@@ -3,5 +3,5 @@ import remarkMath from "remark-math"
 import rehypeKatex from "rehype-katex"
 import type { PluggableList } from "unified"
 
-export const remarkPlugins: PluggableList = [remarkGfm, remarkMath]
+export const remarkPlugins: PluggableList = [remarkMath, remarkGfm]
 export const rehypePlugins: PluggableList = [rehypeKatex]
