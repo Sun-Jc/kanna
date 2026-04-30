@@ -579,7 +579,7 @@ const ChatInputInner = forwardRef<ChatInputHandle, Props>(function ChatInput({
     }
 
     const isTouchDevice = "ontouchstart" in window || navigator.maxTouchPoints > 0
-    if (event.key === "Enter" && !event.shiftKey && !isTouchDevice && !disabled && hasTextToSend && !hasPendingUploads) {
+    if (event.key === "Enter" && (event.metaKey || event.ctrlKey) && !isTouchDevice && !disabled && hasTextToSend && !hasPendingUploads) {
       event.preventDefault()
       void handleSubmit()
     }
