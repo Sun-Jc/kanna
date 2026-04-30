@@ -51,6 +51,7 @@
     "src/client/components/chat-ui/sidebar/Menus.tsx",
     "src/client/components/chat-ui/sidebar/types.ts",
     "src/client/components/messages/shared.tsx",
+    "src/client/components/messages/markdown-plugins.ts",
     "src/client/components/messages/types.ts",
     "src/client/components/messages/TextMessage.tsx",
     "src/client/components/messages/ToolCallMessage.tsx",

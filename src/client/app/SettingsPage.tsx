@@ -15,7 +15,7 @@ import {
   LogOut,
 } from "lucide-react"
 import Markdown from "react-markdown"
-import remarkGfm from "remark-gfm"
+import { remarkPlugins, rehypePlugins } from "../components/messages/markdown-plugins"
 import { useNavigate, useOutletContext, useParams } from "react-router-dom"
 import { getKeybindingsFilePathDisplay, SDK_CLIENT_APP } from "../../shared/branding"
 import { ANALYTICS_STATIC_EVENT_NAMES, ANALYTICS_STATIC_PROPERTY_NAMES } from "../../shared/analytics"
@@ -386,7 +386,7 @@ export function ChangelogSection({
 
             {release.body?.trim() ? (
               <div className="prose prose-sm mt-5 max-w-none text-foreground dark:prose-invert">
-                <Markdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+                <Markdown remarkPlugins={remarkPlugins} rehypePlugins={rehypePlugins} components={markdownComponents}>
                   {release.body}
                 </Markdown>
               </div>

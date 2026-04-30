@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { ExternalLink, Link2 } from "lucide-react"
 import Markdown from "react-markdown"
-import remarkGfm from "remark-gfm"
+import { remarkPlugins, rehypePlugins } from "./markdown-plugins"
 import type { ChatAttachment } from "../../../shared/types"
 import { Button } from "../ui/button"
 import {
@@ -211,7 +211,7 @@ function renderAttachmentPreviewBody(
       <div className="space-y-3">
         {previewState.truncated ? <PreviewNotice message="Preview truncated to 1024 KB." /> : null}
         <div className="prose prose-sm max-w-none overflow-auto rounded-xl border border-border bg-background p-4 prose-invert">
-          <Markdown remarkPlugins={[remarkGfm]} components={createMarkdownComponents()}>
+          <Markdown remarkPlugins={remarkPlugins} rehypePlugins={rehypePlugins} components={createMarkdownComponents()}>
             {previewState.content}
           </Markdown>
         </div>
