@@ -248,6 +248,18 @@ function KannaSidebarImpl({
         return
       }
 
+      // Cmd/Ctrl+Shift+ArrowUp/Down: navigate between sessions
+      if ((event.metaKey || event.ctrlKey) && event.shiftKey && (event.key === "ArrowUp" || event.key === "ArrowDown")) {
+        const chats = visibleChatsRef.current
+        const currentIndex = chats.findIndex(e => e.chat.chatId === activeChatId)
+        const nextIndex = event.key === "ArrowUp" ? currentIndex - 1 : currentIndex + 1
+        if (nextIndex >= 0 && nextIndex < chats.length) {
+          event.preventDefault()
+          navigate(`/chat/${chats[nextIndex].chat.chatId}`)
+        }
+        return
+      }
+
       const targetIndex = getSidebarJumpTargetIndex(resolvedKeybindings, event)
       if (targetIndex === null) {
         return
@@ -280,7 +292,7 @@ function KannaSidebarImpl({
       window.removeEventListener("keyup", handleKeyUp)
       window.removeEventListener("blur", clearHints)
     }
-  }, [currentProjectId, navigate, onClose, onCreateChat, onOpenAddProjectModal, resolvedKeybindings])
+  }, [activeChatId, currentProjectId, navigate, onClose, onCreateChat, onOpenAddProjectModal, resolvedKeybindings])
 
   useEffect(() => {
     if (!activeChatId || !scrollContainerRef.current) return
