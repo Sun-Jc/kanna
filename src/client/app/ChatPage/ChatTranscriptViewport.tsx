@@ -1,5 +1,24 @@
 import { LegendList, type LegendListRef } from "@legendapp/list/react"
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react"
+
+// Per-session scroll position memory (survives re-renders, not page refreshes)
+const scrollPositionMap = new Map<string, number>()
+
+export function saveScrollPosition(chatId: string | null, scrollNode: HTMLElement | null | undefined) {
+  if (chatId && scrollNode instanceof HTMLElement) {
+    scrollPositionMap.set(chatId, scrollNode.scrollTop)
+  }
+}
+
+export function restoreScrollPosition(chatId: string | null, scrollNode: HTMLElement | null | undefined): boolean {
+  if (!chatId || !(scrollNode instanceof HTMLElement)) return false
+  const saved = scrollPositionMap.get(chatId)
+  if (saved != null && saved > 0) {
+    scrollNode.scrollTop = saved
+    return true
+  }
+  return false
+}
 import { ArrowDown, Flower, Upload } from "lucide-react"
 import { AnimatedShinyText } from "../../components/ui/animated-shiny-text"
 import { DrainingIndicator } from "../../components/messages/DrainingIndicator"
@@ -117,10 +136,19 @@ export const ChatTranscriptViewport = memo(function ChatTranscriptViewport({
 
     onIsAtEndChange(true)
     const frameId = window.requestAnimationFrame(() => {
-      void listRef.current?.scrollToEnd?.({ animated: false })
+      const scrollNode = listRef.current?.getScrollableNode?.()
+      if (restoreScrollPosition(activeChatId, scrollNode)) {
+        // Restored saved position — update isAtEnd state
+        if (scrollNode instanceof HTMLElement) {
+          const distanceFromEnd = scrollNode.scrollHeight - scrollNode.clientHeight - scrollNode.scrollTop
+          onIsAtEndChange(distanceFromEnd <= 4)
+        }
+      } else {
+        void listRef.current?.scrollToEnd?.({ animated: false })
+      }
     })
     return () => window.cancelAnimationFrame(frameId)
-  }, [listRef, onIsAtEndChange, resolvedRows.length])
+  }, [activeChatId, listRef, onIsAtEndChange, resolvedRows.length])
 
   const handleToolGroupExpandedChange = useCallback((groupId: string, next: boolean) => {
     setToolGroupExpanded((current) => (
@@ -144,6 +172,7 @@ export const ChatTranscriptViewport = memo(function ChatTranscriptViewport({
       : listRef.current?.getScrollableNode?.()
 
     if (currentTarget instanceof HTMLElement) {
+      saveScrollPosition(activeChatId, currentTarget)
       const distanceFromEnd = currentTarget.scrollHeight - currentTarget.clientHeight - currentTarget.scrollTop
       onIsAtEndChange(distanceFromEnd <= 4)
       return
@@ -153,7 +182,7 @@ export const ChatTranscriptViewport = memo(function ChatTranscriptViewport({
     if (state) {
       onIsAtEndChange(state.isAtEnd)
     }
-  }, [listRef, onIsAtEndChange])
+  }, [activeChatId, listRef, onIsAtEndChange])
 
   useEffect(() => {
     let cleanup: (() => void) | undefined
