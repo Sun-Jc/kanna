@@ -1,7 +1,7 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react"
 import { Flower, Loader2, PanelLeft, X, Menu, Plus, Settings } from "lucide-react"
 import { useLocation, useNavigate } from "react-router-dom"
-import { APP_NAME } from "../../shared/branding"
+import { APP_NAME, APP_VERSION } from "../../shared/branding"
 import { Button } from "../components/ui/button"
 import { Dialog, DialogBody, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../components/ui/dialog"
 import { formatSidebarAgeLabel } from "../lib/formatters"
@@ -565,6 +565,7 @@ function KannaSidebarImpl({
               </div>
             </div>
           </button>
+          <div className="text-center text-[10px] text-muted-foreground/50 pt-1">v{APP_VERSION}</div>
         </div>
 
         <div
