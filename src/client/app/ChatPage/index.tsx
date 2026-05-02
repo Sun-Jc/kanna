@@ -28,7 +28,7 @@ import { useTerminalToggleAnimation } from "../useTerminalToggleAnimation"
 import type { KannaState } from "../useKannaState"
 import { getNextMeasuredInputHeight, getTranscriptPaddingBottom } from "../useKannaState"
 import { ChatInputDock } from "./ChatInputDock"
-import { ChatTranscriptViewport } from "./ChatTranscriptViewport"
+import { ChatTranscriptViewport, hasSavedScrollPosition } from "./ChatTranscriptViewport"
 import { TerminalWorkspaceShell } from "./TerminalWorkspaceShell"
 import { useChatPageSidebarActions, EMPTY_DIFF_SNAPSHOT } from "./useChatPageSidebarActions"
 import {
@@ -713,7 +713,11 @@ export function ChatPage() {
   }, [clearShowScrollTimeout])
 
   useEffect(() => {
-    isAtEndRef.current = true
+    if (hasSavedScrollPosition(state.activeChatId)) {
+      isAtEndRef.current = false
+    } else {
+      isAtEndRef.current = true
+    }
     clearShowScrollTimeout()
     setShowScrollToBottom(false)
   }, [clearShowScrollTimeout, state.activeChatId])

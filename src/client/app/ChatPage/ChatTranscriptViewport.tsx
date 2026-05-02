@@ -4,6 +4,12 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react"
 // Per-session scroll position memory (survives re-renders, not page refreshes)
 const scrollPositionMap = new Map<string, number>()
 
+export function hasSavedScrollPosition(chatId: string | null): boolean {
+  if (!chatId) return false
+  const saved = scrollPositionMap.get(chatId)
+  return saved != null && saved > 0
+}
+
 export function saveScrollPosition(chatId: string | null, scrollNode: HTMLElement | null | undefined) {
   if (chatId && scrollNode instanceof HTMLElement) {
     scrollPositionMap.set(chatId, scrollNode.scrollTop)
@@ -124,8 +130,40 @@ export const ChatTranscriptViewport = memo(function ChatTranscriptViewport({
 
   useEffect(() => {
     setToolGroupExpanded({})
+    previousRowCountRef.current = 0
   }, [activeChatId])
 
+  // Restore saved scroll position when switching chats
+  useEffect(() => {
+    const savedPosition = activeChatId ? scrollPositionMap.get(activeChatId) : undefined
+    if (savedPosition == null || savedPosition <= 0) {
+      return
+    }
+
+    // LegendList fires multiple scrollToEnd calls over several frames.
+    // We must keep re-applying the saved position until LegendList settles.
+    let attempts = 0
+    const maxAttempts = 20
+    let rafId: number | null = null
+
+    const applyRestore = () => {
+      const scrollNode = listRef.current?.getScrollableNode?.()
+      if (scrollNode instanceof HTMLElement && attempts < maxAttempts) {
+        scrollNode.scrollTop = savedPosition
+        const distanceFromEnd = scrollNode.scrollHeight - scrollNode.clientHeight - scrollNode.scrollTop
+        onIsAtEndChange(distanceFromEnd <= 4)
+        attempts++
+        rafId = window.requestAnimationFrame(applyRestore)
+      }
+    }
+
+    rafId = window.requestAnimationFrame(applyRestore)
+    return () => {
+      if (rafId !== null) window.cancelAnimationFrame(rafId)
+    }
+  }, [activeChatId, listRef, onIsAtEndChange])
+
+  // On initial data load (0 → N rows), scroll to end if no saved position
   useEffect(() => {
     const previousRowCount = previousRowCountRef.current
     previousRowCountRef.current = resolvedRows.length
@@ -134,20 +172,13 @@ export const ChatTranscriptViewport = memo(function ChatTranscriptViewport({
       return
     }
 
+    const savedPosition = activeChatId ? scrollPositionMap.get(activeChatId) : undefined
+    if (savedPosition != null && savedPosition > 0) {
+      // Already handled by the restore effect above
+      return
+    }
+
     onIsAtEndChange(true)
-    const frameId = window.requestAnimationFrame(() => {
-      const scrollNode = listRef.current?.getScrollableNode?.()
-      if (restoreScrollPosition(activeChatId, scrollNode)) {
-        // Restored saved position — update isAtEnd state
-        if (scrollNode instanceof HTMLElement) {
-          const distanceFromEnd = scrollNode.scrollHeight - scrollNode.clientHeight - scrollNode.scrollTop
-          onIsAtEndChange(distanceFromEnd <= 4)
-        }
-      } else {
-        void listRef.current?.scrollToEnd?.({ animated: false })
-      }
-    })
-    return () => window.cancelAnimationFrame(frameId)
   }, [activeChatId, listRef, onIsAtEndChange, resolvedRows.length])
 
   const handleToolGroupExpandedChange = useCallback((groupId: string, next: boolean) => {
