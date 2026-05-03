@@ -62,6 +62,7 @@ import {
 } from "../stores/terminalPreferencesStore"
 import { useChatPreferencesStore } from "../stores/chatPreferencesStore"
 import { CHAT_SOUND_OPTIONS, useChatSoundPreferencesStore, type ChatSoundId, type ChatSoundPreference } from "../stores/chatSoundPreferencesStore"
+import { useDebugPreferencesStore } from "../stores/debugPreferencesStore"
 import type { KannaState } from "./useKannaState"
 
 const sidebarItems = [
@@ -472,6 +473,8 @@ export function SettingsPage() {
   const chatSoundId = useChatSoundPreferencesStore((store) => store.chatSoundId)
   const setChatSoundPreference = useChatSoundPreferencesStore((store) => store.setChatSoundPreference)
   const setChatSoundId = useChatSoundPreferencesStore((store) => store.setChatSoundId)
+  const showScrollDebugOverlay = useDebugPreferencesStore((store) => store.showScrollDebugOverlay)
+  const setShowScrollDebugOverlay = useDebugPreferencesStore((store) => store.setShowScrollDebugOverlay)
   const keybindings = state.keybindings
   const appSettings = state.appSettings
   const llmProvider = state.llmProvider
@@ -1241,6 +1244,21 @@ export function SettingsPage() {
                             void handleAnalyticsPreferenceChange(value)
                           }}
                           options={analyticsOptions}
+                          size="sm"
+                        />
+                      </SettingsRow>
+
+                      <SettingsRow
+                        title="Scroll Debug Overlay"
+                        description="Show a floating overlay with scroll position info for debugging chat navigation"
+                      >
+                        <SegmentedControl
+                          value={showScrollDebugOverlay ? "on" : "off"}
+                          onValueChange={(value) => setShowScrollDebugOverlay(value === "on")}
+                          options={[
+                            { value: "off", label: "Off" },
+                            { value: "on", label: "On" },
+                          ]}
                           size="sm"
                         />
                       </SettingsRow>

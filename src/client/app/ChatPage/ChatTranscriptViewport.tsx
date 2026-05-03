@@ -4,6 +4,11 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react"
 // Per-session scroll position memory (survives re-renders, not page refreshes)
 const scrollPositionMap = new Map<string, number>()
 
+// Debug: expose to window for console inspection
+if (typeof window !== "undefined") {
+  ;(window as unknown as Record<string, unknown>).__scrollPositionMap = scrollPositionMap
+}
+
 export function hasSavedScrollPosition(chatId: string | null): boolean {
   if (!chatId) return false
   const saved = scrollPositionMap.get(chatId)
@@ -27,6 +32,7 @@ export function restoreScrollPosition(chatId: string | null, scrollNode: HTMLEle
 }
 import { ArrowDown, Flower, Upload } from "lucide-react"
 import { AnimatedShinyText } from "../../components/ui/animated-shiny-text"
+import { useDebugPreferencesStore } from "../../stores/debugPreferencesStore"
 import { DrainingIndicator } from "../../components/messages/DrainingIndicator"
 import { QueuedUserMessage } from "../../components/messages/QueuedUserMessage"
 import { OpenLocalLinkProvider, type OpenLocalLinkTarget } from "../../components/messages/shared"
@@ -120,6 +126,7 @@ export const ChatTranscriptViewport = memo(function ChatTranscriptViewport({
   const [toolGroupExpanded, setToolGroupExpanded] = useState<Record<string, boolean>>({})
   const [localLinkMenuTarget, setLocalLinkMenuTarget] = useState<OpenLocalLinkTarget | null>(null)
   const isMac = platform === "darwin"
+  const showScrollDebugOverlay = useDebugPreferencesStore((s) => s.showScrollDebugOverlay)
 
   const rawRows = useMemo(() => buildResolvedTranscriptRows(messages, {
     isLoading: isProcessing,
@@ -192,6 +199,8 @@ export const ChatTranscriptViewport = memo(function ChatTranscriptViewport({
     ))
   }, [])
 
+  const [debugScrollTop, setDebugScrollTop] = useState(0)
+
   const handleScroll = useCallback((event?: unknown) => {
     const currentTarget = (
       typeof event === "object"
@@ -204,6 +213,7 @@ export const ChatTranscriptViewport = memo(function ChatTranscriptViewport({
 
     if (currentTarget instanceof HTMLElement) {
       saveScrollPosition(activeChatId, currentTarget)
+      setDebugScrollTop(currentTarget.scrollTop)
       const distanceFromEnd = currentTarget.scrollHeight - currentTarget.clientHeight - currentTarget.scrollTop
       onIsAtEndChange(distanceFromEnd <= 4)
       return
@@ -323,6 +333,19 @@ export const ChatTranscriptViewport = memo(function ChatTranscriptViewport({
 
   return (
     <>
+      {showScrollDebugOverlay ? (
+        <div style={{
+          position: "fixed", top: 8, right: 8, zIndex: 9999,
+          background: "rgba(0,0,0,0.85)", color: "#0f0", padding: "6px 10px",
+          borderRadius: 6, fontSize: 11, fontFamily: "monospace", pointerEvents: "none",
+          lineHeight: 1.5,
+        }}>
+          <div>chat: {activeChatId?.slice(0, 8) ?? "null"}</div>
+          <div>scrollTop: {Math.round(debugScrollTop)}</div>
+          <div>saved: {activeChatId ? (scrollPositionMap.get(activeChatId)?.toFixed(0) ?? "none") : "—"}</div>
+          <div>map size: {scrollPositionMap.size}</div>
+        </div>
+      ) : null}
       <OpenLocalLinkProvider onOpenLocalLink={handleOpenLocalLinkClick}>
         <LegendList<ResolvedTranscriptRow>
           ref={listRef}
