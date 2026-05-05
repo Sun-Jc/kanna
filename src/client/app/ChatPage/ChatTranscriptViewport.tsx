@@ -53,6 +53,7 @@ import {
   EMPTY_STATE_TEXT,
 } from "./utils"
 import type { EditorPreset } from "../../../shared/protocol"
+import { ScrollMinimap } from "./ScrollMinimap"
 
 interface ChatTranscriptViewportProps {
   activeChatId: string | null
@@ -367,6 +368,13 @@ export const ChatTranscriptViewport = memo(function ChatTranscriptViewport({
           ListFooterComponent={listFooter}
         />
       </OpenLocalLinkProvider>
+
+      <ScrollMinimap
+        resolvedRows={resolvedRows}
+        listRef={listRef}
+        activeChatId={activeChatId}
+        headerOffsetPx={headerOffsetPx}
+      />
 
       <ContextMenu onOpenChange={(open) => {
         if (!open) {
