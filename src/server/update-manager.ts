@@ -45,7 +45,7 @@ export class UpdateManager {
   }
 
   async checkForUpdates(options: { force?: boolean } = {}) {
-    if (this.deps.devMode) {
+    if (this.deps.devMode || process.env.KANNA_NO_UPDATE === "1") {
       return this.snapshot
     }
 
