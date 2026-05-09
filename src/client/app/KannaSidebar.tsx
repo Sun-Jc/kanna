@@ -65,6 +65,7 @@ interface KannaSidebarProps {
   onOpenAddProjectModal: () => void
   onCopyPath: (localPath: string) => void
   onOpenExternalPath: (action: "open_finder" | "open_editor", localPath: string) => void
+  onRenameProject: (projectId: string, sidebarTitle: string | undefined, realTitle: string) => void
   onHideProject: (projectId: string) => void
   onReorderProjectGroups: (projectIds: string[]) => void
   editorLabel: string
@@ -96,6 +97,7 @@ function KannaSidebarImpl({
   onOpenAddProjectModal,
   onCopyPath,
   onOpenExternalPath,
+  onRenameProject,
   onHideProject,
   onReorderProjectGroups,
   editorLabel,
@@ -403,7 +405,7 @@ function KannaSidebarImpl({
         )}
         style={{ "--sidebar-width": `${sidebarWidth}px` } as CSSProperties}
       >
-        <div className="px-[5px] h-[64px] max-h-[64px] md:h-[55px] md:max-h-[55px] border-b grid grid-cols-[40px_minmax(0,1fr)_40px] items-center md:px-[7px] md:pl-3 md:flex md:justify-between">
+        <div className="px-[5px] h-[64px] max-h-[64px] md:h-[55px] md:max-h-[55px] border-b grid grid-cols-[40px_minmax(0,1fr)_40px] items-center md:pl-3 md:pr-[6.5px] md:flex md:justify-between">
           <div className="md:hidden">
             <Button
               variant="ghost"
@@ -530,6 +532,7 @@ function KannaSidebarImpl({
               }}
               onCopyPath={onCopyPath}
               onOpenExternalPath={onOpenExternalPath}
+              onRenameProject={onRenameProject}
               onHideProject={onHideProject}
               isConnected={connectionStatus === "connected"}
             />
